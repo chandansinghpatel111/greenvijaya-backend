@@ -28,6 +28,11 @@ app.use('/api/projects', projectRoutes);
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root route for health check
+app.get('/', (req, res) => {
+  res.send('Green Vijaya API is running...');
+});
+
 // MongoDB connection
 const connectDB = require('./config/db');
 
