@@ -31,3 +31,6 @@ node_modules/
 
 # Uploads / user generated files
 uploads/
+
+.vercel
+.env*
