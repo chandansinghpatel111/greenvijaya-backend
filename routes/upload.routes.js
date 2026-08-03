@@ -6,7 +6,7 @@ const { protect } = require('../middleware/auth.middleware');
 router.post('/', protect, upload.array('images', 5), (req, res) => {
   try {
     const imageUrls = req.files.map(file => {
-      return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+      return file.path || `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
     });
     res.json({ images: imageUrls });
   } catch (error) {
