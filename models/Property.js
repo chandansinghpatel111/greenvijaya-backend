@@ -19,7 +19,7 @@ const PropertySchema = new mongoose.Schema({
   propertyCategory: { type: String },
   facingType: { type: String },
   contactNumber: { type: String },
-  broker: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Sold'], default: 'Pending' },
   rejectionReason: { type: String },
   views: { type: Number, default: 0 },

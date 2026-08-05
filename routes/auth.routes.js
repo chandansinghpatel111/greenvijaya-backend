@@ -12,7 +12,7 @@ router.post('/register', async (req, res) => {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-    const status = role === 'broker' ? 'pending' : 'active';
+    const status = 'active';
     const user = await User.create({ name, email, password, mobileNumber, role: role || 'user', status });
     if (user) {
       // Create notification for admin
@@ -23,9 +23,11 @@ router.post('/register', async (req, res) => {
       });
 
       res.status(201).json({
+        success: true,
         _id: user._id,
         name: user.name,
         email: user.email,
+        mobileNumber: user.mobileNumber,
         role: user.role,
         token: generateToken(user._id)
       });
@@ -52,9 +54,12 @@ router.post('/login', async (req, res) => {
       }
 
       res.json({
+        success: true,
+        message: "Login successfully",
         _id: user._id,
         name: user.name,
         email: user.email,
+        mobileNumber: user.mobileNumber,
         role: user.role,
         status: user.status,
         token: generateToken(user._id)

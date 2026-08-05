@@ -6,7 +6,7 @@ const EnquirySchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property', required: true },
-  broker: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['New', 'Contacted', 'Closed'], default: 'New' },
   message: { type: String }
 }, { timestamps: true });

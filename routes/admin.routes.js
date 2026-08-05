@@ -10,7 +10,7 @@ const { protect, authorize } = require('../middleware/auth.middleware');
 // GET all properties (Admin only)
 router.get('/properties', protect, authorize('admin'), async (req, res) => {
   try {
-    const properties = await Property.find().populate('broker', 'name email mobileNumber role');
+    const properties = await Property.find().populate('postedBy', 'name email mobileNumber role');
     res.json(properties);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -27,37 +27,7 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-// GET all registered sellers (Admin only)
-router.get('/sellers', protect, authorize('admin'), async (req, res) => {
-  try {
-    const sellers = await User.find({ role: 'broker' }).select('-password').sort({ createdAt: -1 });
-    res.json(sellers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Approve seller
-router.put('/sellers/:id/approve', protect, authorize('admin'), async (req, res) => {
-  try {
-    const seller = await User.findByIdAndUpdate(req.params.id, { status: 'active' }, { new: true });
-    if (!seller) return res.status(404).json({ message: 'Seller not found' });
-    res.json(seller);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Reject seller
-router.put('/sellers/:id/reject', protect, authorize('admin'), async (req, res) => {
-  try {
-    const seller = await User.findByIdAndUpdate(req.params.id, { status: 'rejected' }, { new: true });
-    if (!seller) return res.status(404).json({ message: 'Seller not found' });
-    res.json(seller);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+// Sellers/Brokers routes removed
 
 // GET pending properties
 router.get('/properties/pending', protect, authorize('admin'), async (req, res) => {

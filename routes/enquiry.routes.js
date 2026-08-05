@@ -6,13 +6,13 @@ const { protect, authorize } = require('../middleware/auth.middleware');
 // POST new enquiry
 router.post('/', async (req, res) => {
   try {
-    const { name, email, phone, property, broker, message } = req.body;
+    const { name, email, phone, property, postedBy, message } = req.body;
     const enquiry = new Enquiry({
       name,
       email,
       phone,
       property,
-      broker,
+      postedBy,
       message,
       // If user is logged in, you could optionally pass their ID here, but for now we rely on the guest fields.
       ...(req.body.user && { user: req.body.user })
@@ -24,23 +24,23 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET enquiries (Admin sees all, Broker sees theirs, User sees theirs)
+// GET enquiries (Admin sees all, User sees theirs)
 router.get('/', protect, async (req, res) => {
   try {
     let query = {};
-    if (req.user.role === 'user') {
+    if (req.user.role === 'admin') {
+      // Admin sees all
+    } else {
       query.user = req.user._id;
-    } else if (req.user.role === 'broker') {
-      query.broker = req.user._id;
     }
     
     const enquiries = await Enquiry.find(query)
       .populate('user', 'name email mobileNumber')
       .populate({
         path: 'property',
-        populate: { path: 'broker' }
+        populate: { path: 'postedBy' }
       })
-      .populate('broker');
+      .populate('postedBy');
     res.json(enquiries);
   } catch (error) {
     res.status(500).json({ message: error.message });
