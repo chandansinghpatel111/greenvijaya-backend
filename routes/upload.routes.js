@@ -3,7 +3,15 @@ const router = express.Router();
 const { upload } = require('../utils/cloudinary');
 const { protect } = require('../middleware/auth.middleware');
 
-router.post('/', protect, upload.array('images', 5), (req, res) => {
+router.post('/', protect, (req, res, next) => {
+  const uploadMiddleware = upload.array('images', 5);
+  uploadMiddleware(req, res, function (err) {
+    if (err) {
+      return res.status(500).json({ message: 'Upload Middleware Error: ' + err.message });
+    }
+    next();
+  });
+}, (req, res) => {
   try {
     const imageUrls = req.files.map(file => {
       return file.path || `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
