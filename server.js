@@ -9,6 +9,7 @@ const enquiryRoutes = require('./routes/enquiry.routes');
 const adminRoutes = require('./routes/admin.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const projectRoutes = require('./routes/project.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
