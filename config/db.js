@@ -6,7 +6,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const connectDB = async () => {
   try {
-    const MONGO_URI = process.env.MONGO_URI || 'https://greenvijaya-backend-psi.vercel.app/';
+    const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/green_vijaya_mern';
     await mongoose.connect(MONGO_URI);
     console.log('Connected to MongoDB');
   } catch (err) {
