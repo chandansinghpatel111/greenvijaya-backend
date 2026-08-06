@@ -3,6 +3,8 @@ const router = express.Router();
 const Enquiry = require('../models/Enquiry');
 const { protect, authorize } = require('../middleware/auth.middleware');
 
+const nodemailer = require('nodemailer');
+
 // POST new enquiry
 router.post('/', async (req, res) => {
   try {
@@ -18,6 +20,39 @@ router.post('/', async (req, res) => {
       ...(req.body.user && { user: req.body.user })
     });
     const savedEnquiry = await enquiry.save();
+
+    // Send email using Nodemailer
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD,
+          },
+        });
+
+        const mailOptions = {
+          from: process.env.GMAIL_USER,
+          to: process.env.GMAIL_USER, // Sending to yourself
+          subject: `New Lead from ${name} on Green Vijaya`,
+          html: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message}</p>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Lead email sent successfully');
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+      }
+    }
+
     res.status(201).json(savedEnquiry);
   } catch (error) {
     res.status(500).json({ message: error.message });
