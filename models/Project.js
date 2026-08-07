@@ -26,6 +26,11 @@ const projectSchema = new mongoose.Schema({
   price: {
     type: Number,
   },
+  listingType: { type: String },
+  propertyCategory: { type: String },
+  propertyType: { type: String },
+  facingType: { type: String },
+  contactNumber: { type: String },
   amenities: [{
     type: String,
   }],
