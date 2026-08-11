@@ -21,7 +21,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 router.put('/:id/read', protect, authorize('admin'), async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.id);
-    
+
     if (notification) {
       notification.isRead = true;
       const updatedNotification = await notification.save();
