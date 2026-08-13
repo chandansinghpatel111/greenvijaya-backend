@@ -72,9 +72,94 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Firebase Auth Login / Register (Google & Mobile OTP)
+router.post('/firebase', async (req, res) => {
+  try {
+    const { email, mobileNumber, name } = req.body;
+    
+    // Check if user exists by email OR mobile number
+    let query = {};
+    if (email) query.email = email;
+    else if (mobileNumber) query.mobileNumber = mobileNumber;
+    else return res.status(400).json({ message: 'Email or Mobile Number is required' });
+
+    let user = await User.findOne(query);
+
+    if (user) {
+      // User exists -> Log them in
+      if (user.status === 'pending') {
+        return res.status(401).json({ message: 'Your account is pending approval.' });
+      }
+      if (user.status === 'rejected') {
+        return res.status(401).json({ message: 'Your account has been rejected.' });
+      }
+    } else {
+      // User does not exist -> Register them
+      // We need a dummy password since password is required in the User schema
+      const dummyPassword = Math.random().toString(36).slice(-10) + 'A1!'; 
+      
+      user = await User.create({
+        name: name || 'User',
+        email: email || `${mobileNumber}@placeholder.com`, // Email is required in schema
+        mobileNumber: mobileNumber || '',
+        password: dummyPassword,
+        role: 'user',
+        status: 'active'
+      });
+
+      // Create notification for admin
+      await Notification.create({
+        title: 'New Registration via Firebase',
+        message: `A new user (${user.name}) registered via Firebase auth.`,
+        type: 'registration'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Firebase Login successfully",
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      mobileNumber: user.mobileNumber,
+      role: user.role,
+      status: user.status,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Profile
 router.get('/profile', protect, async (req, res) => {
   res.json(req.user);
+});
+
+// Update Profile
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.name = req.body.name || user.name;
+    user.mobileNumber = req.body.mobileNumber || user.mobileNumber;
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      mobileNumber: updatedUser.mobileNumber,
+      role: updatedUser.role,
+      status: updatedUser.status
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Reset Password
