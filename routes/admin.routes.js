@@ -125,11 +125,67 @@ router.get('/dashboard-stats', protect, authorize('admin'), async (req, res) => 
     const totalPostings = await Property.countDocuments();
     const totalInquiries = await Enquiry.countDocuments();
 
+    // Chart Data (Properties and Inquiries created per month for last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const propertyAgg = await Property.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      { $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const enquiryAgg = await Enquiry.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      { $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const chartDataMap = new Map();
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthName = monthNames[d.getMonth()];
+      const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      chartDataMap.set(key, { name: monthName, properties: 0, inquiries: 0 });
+    }
+
+    propertyAgg.forEach(p => {
+      const key = `${p._id.year}-${p._id.month}`;
+      if (chartDataMap.has(key)) {
+        chartDataMap.get(key).properties = p.count;
+      }
+    });
+
+    enquiryAgg.forEach(e => {
+      const key = `${e._id.year}-${e._id.month}`;
+      if (chartDataMap.has(key)) {
+        chartDataMap.get(key).inquiries = e.count;
+      }
+    });
+
+    const chartData = Array.from(chartDataMap.values());
+
+    // Recent Activity (Latest 5 notifications)
+    const recentActivity = await Notification.find().sort({ createdAt: -1 }).limit(5);
+
     res.json({
       totalProjects,
       activeServices,
       totalPostings,
-      totalInquiries
+      totalInquiries,
+      chartData,
+      recentActivity
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
